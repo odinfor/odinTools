@@ -1,4 +1,4 @@
-module mysqlCli
+module github.com/odinfor/odinTools/mysqlCli
 
 go 1.15
 
