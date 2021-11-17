@@ -28,7 +28,7 @@ func InitRedisConfig(host, password string, port, db int) *redisClient {
 func (r *redisClient) NewRedisClient() (*redis.Client, error) {
 	var err error
 	r.client = redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s/%d", r.host, r.port),
+		Addr: fmt.Sprintf("%s:%d", r.host, r.port),
 		Password: r.password,
 		DB: r.db,
 	})
