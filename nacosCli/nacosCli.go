@@ -1,6 +1,7 @@
 package nacosCli
 
 import (
+	"fmt"
 	"github.com/nacos-group/nacos-sdk-go/clients"
 	"github.com/nacos-group/nacos-sdk-go/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/clients/naming_client"
@@ -72,8 +73,7 @@ func (n *nacosClient) SetCacheDir(path string) {
 // @receiver n
 // @param path
 //
-func (n *nacosClient) SetMaxAge(num int64) {//
-
+func (n *nacosClient) SetMaxAge(num int64) {
 	n.clientConfig.MaxAge = num
 }
 
@@ -120,6 +120,14 @@ func (n *nacosClient) CreateConfigClient() error {//
 	return nil
 }
 
+func (n *nacosClient) GetNamingClient() *naming_client.INamingClient {
+	return n.namingClient
+}
+
+func (n *nacosClient) GetConfigClient() *config_client.IConfigClient {
+	return n.configClient
+}
+
 // RegisterInstance
 // @Description: 服务注册到nacos
 // @receiver n
@@ -141,6 +149,32 @@ func (n *nacosClient) RegisterInstance(nacosIp string, serviceName string, group
 		Enable:      true,
 		Healthy:     true,
 		Ephemeral:   true,
+	})
+	if !success {
+		return err
+	}
+	return nil
+}
+
+// DeregisterInstance
+// @Description: 取消注册
+// @receiver n
+// @param nacosIp
+// @param serviceName
+// @param groupName
+// @param clusterName
+// @return error
+//
+func (n *nacosClient) DeregisterInstance(nacosIp string, serviceName string, groupName string, clusterName string) error {
+	client := *n.namingClient
+
+	success, err := client.DeregisterInstance(vo.DeregisterInstanceParam{
+		Ip:          nacosIp,
+		Port:        8848,
+		ServiceName: serviceName,
+		Ephemeral:   true,
+		Cluster:     clusterName, // default value is DEFAULT
+		GroupName:   groupName,   // default value is DEFAULT_GROUP
 	})
 	if !success {
 		return err
@@ -188,4 +222,84 @@ func (n *nacosClient) GetConfig(dataId string, group string) (string, error) {
 		return "", err
 	}
 	return content, nil
+}
+
+// ListenConfig
+// @Description: 监听配置修改事件
+// @receiver n
+// @param dataId
+// @param group
+// @return error
+//
+func (n *nacosClient) ListenConfig(dataId string, group string) error {
+	client := *n.configClient
+	err := client.ListenConfig(vo.ConfigParam{
+		DataId: dataId,
+		Group: group,
+		OnChange: func(namespace, group, dataId, data string) {
+			fmt.Println("group:" + group + ", dataId:" + dataId + ", data:" + data)
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// CancelListenConfig
+// @Description: 取消监听事件
+// @receiver n
+// @param dataId
+// @param group
+// @return error
+//
+func (n *nacosClient) CancelListenConfig(dataId string, group string) error {
+	client := *n.configClient
+	err := client.CancelListenConfig(vo.ConfigParam{
+		DataId: dataId,
+		Group:  group,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// PublishConfig
+// @Description: 发布配置
+// @receiver n
+// @param dataId
+// @param group
+// @return error
+//
+func (n *nacosClient) PublishConfig(dataId string, group string, content string) error {
+	client := *n.configClient
+	success, err := client.PublishConfig(vo.ConfigParam{
+		DataId:  dataId,
+		Group:   group,
+		Content: content,
+	})
+	if !success {
+		return err
+	}
+	return nil
+}
+
+// DeleteConfig
+// @Description: 删除配置
+// @receiver n
+// @param dataId
+// @param group
+// @return error
+//
+func (n *nacosClient) DeleteConfig(dataId string, group string) error {
+	client := *n.configClient
+	success, err := client.DeleteConfig(vo.ConfigParam{
+		DataId: dataId,
+		Group:  group,
+	})
+	if !success {
+		return err
+	}
+	return nil
 }
