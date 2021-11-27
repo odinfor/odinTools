@@ -1,7 +1,6 @@
 package autoBindWrap
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"reflect"
@@ -50,7 +49,12 @@ func AutoBindWrap(handlerFunc interface{}) gin.HandlerFunc {
 					err = context.ShouldBindJSON(pv)
 				}
 				if err != nil {
-					panic(fmt.Errorf("bind params error: %v", err))
+					//panic(fmt.Errorf("bind params error: %v", err))
+					context.JSON(http.StatusOK, gin.H{
+						"code": 200,
+						"message": "fail",
+						"data": "绑定参数错误",
+					})
 					return
 				}
 				handlerFuncParams[i] = reflect.ValueOf(pv)
