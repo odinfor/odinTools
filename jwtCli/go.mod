@@ -1,4 +1,4 @@
-module jwtCli
+module github.com/odinfor/odinTools/jwtCli
 
 go 1.15
 
